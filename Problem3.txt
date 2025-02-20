@@ -1,0 +1,64 @@
+3. Mathematically derive the average runtime complexity of the non-random pivot version of quicksort.
+
+def quicksort_non_random(arr):
+    # Base case
+    if len(arr) <= 1:
+        return arr
+
+    pivot = arr[0]
+
+    left = []
+    right = []
+
+    # Partition time
+    for i in range(1, len(arr)):
+        if arr[i] < pivot:
+            left.append(arr[i])
+        else:
+            right.append(arr[i])
+
+    sorted_left = quicksort_non_random(left)
+    sorted_right = quicksort_non_random(right)
+
+    return sorted_left + [pivot] + sorted_right
+
+Using the first element as the pivot, partitioning the array into arrays of size x-1 and n-x.
+x --> rank of the pivot in the sorted order.
+
+Partitioning step is O(n) because we have to go through the entire array to split it into left and right components
+using the pivot.
+
+We can set the problem up as:
+T(n) = c * O(n) + (1/n) * ∑, x=1 to n, (T(x-1) + T(n-x))
+        ^partition
+
+Which reduces down to:
+T(n) = c*n + (1/n) * ∑, x=1 to n, (T(x-1) + T(n-x))
+
+which reduces down to:
+T(n) = c*n + (2/n) * ∑, x=0 to n-1, T(x)
+
+let S(n) = ∑, x=0 to n, T(x)
+
+S(n) - S(n-1) = T(n)
+
+Putting that into our formula:
+
+T(n) = c*n + (2/n) * S(n-1)
+n*T(n) = c*n^2 + 2*S(n-1)
+2*S(n-1) = n*T(n) - c*n^2
+...
+T(n) = a*nlog(n) + b*n + ...
+for the right constants a and b
+
+(n+2)(a*nlog(n) + b*n) = c*n^2 + 2*S(n)
+--> a*n^2*logn + 2*a*nlog(n) + b*n^2 + 2*b*b = c*n^2 + 2*S(n)
+
+S(n) ≈ (a/n) * n^2 * logn
+...
+a*n^2 * logn + 2a*n*logn + b*n^2 + 2*b*n = c*n^2 + a*n^2 * logn
+
+with large n--> b*n^2 = c*n^2 -->b=c
+
+so left with 2*a*nlog(n) as the leading term
+hence T(n) = O(nlogn)
