@@ -1,0 +1,25 @@
+Aggregate:
+Everytime we double from size n to 2n --> realloc & copying n elems
+Insertion --> O(1), trivially
+Resizing -->O(n) because we have to copy n elems over once we double to 2n
+
+when we are doubling the array:
+1 --> 2 --> 4 --> ... --> 2^A , that is also when the doubling happens too
+
+The cost for copying is O( 1+ 2+4+...+ 2^A)
+
+2^A = n for the largest size we are needing --> O(2^A) = O(n)
+
+total cost = cost of copy and insertions = O(n) + O(n) = O(n)
+
+Amortized runtime for insertion is O(n) / n = O(1)
+
+Accounting method:
+each insertion will have a cost associated to it ( c for constant) and each
+part of the charge will charge the actual insertion while the rest of the part is saved for
+downstream tasks like copying when the array doubles
+
+c > future cost of copying all elemns during expansion of array
+--> when we insert an elem, keep 1 extra credit in the savings and cost c too
+--> Copying the array over when doubling costs O(n) however each contributed 1 credit to the savings
+    so we have n credits to pay for the cost of copying n elems --> amortized cost of O(1)
