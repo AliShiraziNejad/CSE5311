@@ -1,82 +1,118 @@
-# Implementation and Testing of Graph Algorithms
+def depth_first_search(graph):
+    time = 0
+    color = {u: 'white' for u in graph}
+    parent = {u: None for u in graph}
+    d = {}
+    f = {}
+    def dfs_visit(u):
+        nonlocal time
+        time += 1
+        d[u] = time
+        color[u] = 'gray'
+        for v in graph[u]:
+            if color[v] == 'white':
+                parent[v] = u
+                dfs_visit(v)
+        color[u] = 'black'
+        time += 1
+        f[u] = time
 
-# 1. Topological Sort and Depth-First Search (DFS)
-
-class Graph:
-    def __init__(self, vertices):
-        # Initialize adjacency list
-        self.vertices = vertices
-        self.adj = {}
-        for v in vertices:
-            self.adj[v] = []
-
-    def add_edge(self, u, v):
-        # Add directed edge u -> v
-        self.adj[u].append(v)
+    for u in graph:
+        if color[u] == 'white':
+            dfs_visit(u)
+    return d, f, parent
 
 
-def dfs_util(graph, v, visited, order):
-    visited.add(v)
-    order.append(v)
-    for neighbor in graph.adj[v]:
-        if neighbor not in visited:
-            dfs_util(graph, neighbor, visited, order)
+Dfs_graph = {
+    'u': ['v', 'x'],
+    'v': ['y'],
+    'w': ['y', 'z'],
+    'x': ['v'],
+    'y': ['x'],
+    'z': ['z']
+}
 
-
-def dfs(graph):
-    visited = set()
-    order = []
-    for v in graph.vertices:
-        if v not in visited:
-            dfs_util(graph, v, visited, order)
-    return order
+d, f, parent = depth_first_search(Dfs_graph)
+print("DFS Page 605:")
+print("Vertex | Discovery | Finishing | Parent")
+for u in sorted(Dfs_graph):
+    print(f"  {u}    |    {d[u]}      |    {f[u]}      |   {parent[u]}")
 
 
 def topological_sort(graph):
-    visited = set()
-    stack = []
+    time = 0
+    color = {u: 'white' for u in graph}
+    f = {}
+    topo = []
 
-    def visit(v):
-        visited.add(v)
-        for n in graph.adj[v]:
-            if n not in visited:
-                visit(n)
-        # Prepend v to the stack
-        stack.insert(0, v)
+    def dfs_visit(u):
+        nonlocal time
+        time += 1
+        color[u] = 'gray'
+        for v in graph[u]:
+            if color[v] == 'white':
+                dfs_visit(v)
+        color[u] = 'black'
+        topo.append(u)
+        time += 1
+        f[u] = time
 
-    for v in graph.vertices:
-        if v not in visited:
-            visit(v)
-    return stack
+    for u in graph:
+        if color[u] == 'white':
+            dfs_visit(u)
+
+    topo.reverse()
+    return topo
 
 
-# 2. Kruskal's Algorithm for Minimum Spanning Tree (MST)
+Topo_graph = {
+    'm': ['q','r','x'],
+    'n': ['q','o','u'],
+    'o': ['r','s','v'],
+    'p': ['o','s','z'],
+    'q': ['t'],
+    'r': ['v','y'],
+    's': ['r'],
+    't': ['x'],
+    'u': ['t','x'],
+    'v': ['w','y'],
+    'w': ['z'],
+    'x': [],
+    'y': [],
+    'z': []
+}
+
+order = topological_sort(Topo_graph)
+print("\nTopological Sort of Page 615:")
+print(order)
+
 
 class DisjointSet:
-    def __init__(self, vertices):
-        self.parent = {}
-        self.rank = {}
-        for v in vertices:
-            self.parent[v] = v
-            self.rank[v] = 0
+    def __init__(self, elements):
+        self.parent = {e: e for e in elements}
+        self.rank = {e: 0 for e in elements}
 
-    def find(self, v):
-        if self.parent[v] != v:
-            self.parent[v] = self.find(self.parent[v])
-        return self.parent[v]
+    def find(self, x):
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
 
-    def union(self, a, b):
-        ra = self.find(a)
-        rb = self.find(b)
-        if ra == rb:
+        return self.parent[x]
+
+    def union(self, x, y):
+        rx, ry = self.find(x), self.find(y)
+
+        if rx == ry:
             return False
-        if self.rank[ra] < self.rank[rb]:
-            self.parent[ra] = rb
-        elif self.rank[ra] > self.rank[rb]:
-            self.parent[rb] = ra
+
+        if self.rank[rx] < self.rank[ry]:
+            self.parent[rx] = ry
+
+        elif self.rank[rx] > self.rank[ry]:
+            self.parent[ry] = rx
+
         else:
-            self.parent[rb] = ra
-            self.rank[ra] += 1
+            self.parent[ry] = rx
+            self.rank[rx] += 1
         return True
 
 
@@ -84,42 +120,34 @@ def kruskal(vertices, edges):
     ds = DisjointSet(vertices)
     mst = []
     total_weight = 0
-    # Sort edges by weight
-    sorted_edges = sorted(edges, key=lambda edge: edge[2])
-    for edge in sorted_edges:
-        u, v, w = edge
+    for u, v, w in sorted(edges, key=lambda e: e[2]):
         if ds.union(u, v):
             mst.append((u, v, w))
             total_weight += w
     return mst, total_weight
 
 
-# Testing on classic textbook examples
-
-# Example for Topological Sort & DFS (from CLRS)
-vertices_ts = [5, 4, 2, 3, 1, 0]
-g = Graph(vertices_ts)
-g.add_edge(5, 2)
-g.add_edge(5, 0)
-g.add_edge(4, 0)
-g.add_edge(4, 1)
-g.add_edge(2, 3)
-g.add_edge(3, 1)
-
-dfs_order = dfs(g)
-topo_order = topological_sort(g)
-
-# Example for Kruskal's MST (from CLRS)
-vertices_kruskal = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-edges_kruskal = [
-    ('A','B',7), ('A','D',5), ('B','C',8), ('B','D',9),
-    ('B','E',7), ('C','E',5), ('D','E',15), ('D','F',6),
-    ('E','F',8), ('E','G',9), ('F','G',11)
+vertices = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
+edges = [
+    ('a', 'b', 4),
+    ('a', 'h', 8),
+    ('b', 'h', 11),
+    ('b', 'c', 8),
+    ('c', 'd', 7),
+    ('c', 'f', 4),
+    ('c', 'i', 2),
+    ('d', 'e', 9),
+    ('d', 'f', 14),
+    ('e', 'f', 10),
+    ('f', 'g', 2),
+    ('g', 'h', 1),
+    ('g', 'i', 6),
+    ('h', 'i', 7)
 ]
-mst_edges, mst_weight = kruskal(vertices_kruskal, edges_kruskal)
 
-# Output results
-print("DFS Order on DAG example:", dfs_order)
-print("Topological Sort order:", topo_order)
-print("MST edges:", mst_edges)
-print("Total weight of MST:", mst_weight)
+mst, weight = kruskal(vertices, edges)
+print("\nPage 625:")
+print("Edges in MST:")
+for u, v, w in mst:
+    print(f"({u}, {v}) weight={w}")
+print("Total MST weight:", weight)
